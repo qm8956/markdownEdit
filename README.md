@@ -1,6 +1,6 @@
 # mdedit
 
-> markdown edit
+> markdown 编辑器，点击保存，或ctrl+s时，回将markdown文本内容生成文件下载下来，同时也可下载exe文件作为工具使用
 
 ## Build Setup
 
