@@ -1,15 +1,22 @@
 <template>
-  <mavon-editor v-model="value" ref="md" :toolbars="toolbars" @save="saveFile"></mavon-editor>
+  <div class="">
+    <mavon-editor v-model="content" ref="md" :toolbars="toolbars" @save="saveFile"></mavon-editor>
+    <button class="burger add btn-po-bo-add" @click="add()" title="添加新文章"></button>
+    <button class="burger  btn-po-bo-list" @click="openList()" title="展开文章列表"></button>
+    <Aside :show="show" placement="right" header="Title" :width="400" @close="closeList()" @modify="modify"></ASide>
+  </div>
 </template>
 
 <script>
-// import fs from 'fs'
-// var fs = require('fs')
+import Aside from './Aside'
 export default {
   title: 'markdown-edit',
   data () {
     return {
-      value: '',
+      content: '',
+      show: false,
+      id: null,
+      biblioid: '',
       toolbars: {
         bold: true, // 粗体
         italic: true, // 斜体
@@ -65,7 +72,155 @@ export default {
       } else {
         pom.click()
       }
+    },
+    openList () {
+      // console.log('关闭/打开')
+      this.show = true
+    },
+    closeList () {
+      // console.log('guanci')
+      this.show = false
+    },
+    // 延时保存
+    debounce (func, wait, self) {
+      if (!self.timestamp) {
+        self.timestamp = 0
+      }
+      let last = new Date().getTime() - self.timestamp
+      if (last < wait && self.settimeout) {
+        clearTimeout(self.settimeout)
+      }
+      self.timestamp = new Date().getTime()
+      self.settimeout = setTimeout(() => {
+        func()
+      }, wait)
+    },
+    add () {
+      this.content = ''
+      this.id = null
+      this.biblioid = null
+    },
+    save () {
+      this.$dbAdd(this.id, this.content.substring(0, 10), this.content, this.biblioid).then((id, biblioid) => {
+        this.id = id
+        this.biblioid = biblioid
+      })
+    },
+    modify (row) {
+      this.show = false
+      this.id = row.id
+      this.content = row.content
+      this.biblioid = row.biblioid
     }
-  }
+  },
+  watch: {
+    'content' () {
+      if (this.content && this.content.length > 25) {
+        this.debounce(this.save, 5000, this)
+      }
+    }
+  },
+  components: { Aside }
 }
 </script>
+<style>
+
+  .burger {
+    z-index: 9999;
+    border: 0;
+    background: none;
+    outline: 0;
+    padding: 0;
+    cursor: pointer;
+    border-bottom: 3px solid currentColor;
+    width: 20px;
+    transition: border-bottom 1s ease-in-out;
+    -webkit-transition: border-bottom 1s ease-in-out;
+  }
+  .burger::-moz-focus-inner {
+    border: 0;
+    padding: 0;
+  }
+  .burger:before {
+    content: "";
+    display: block;
+    border-bottom: 3px solid currentColor;
+    width: 100%;
+    margin-bottom: 3px;
+    transition: transform 0.5s ease-in-out;
+    -webkit-transition: -webkit-transform 0.5s ease-in-out;
+  }
+  .burger:after {
+    content: "";
+    display: block;
+    border-bottom: 3px solid currentColor;
+    width: 100%;
+    margin-bottom: 3px;
+    transition: transform 0.5s ease-in-out;
+    -webkit-transition: -webkit-transform 0.5s ease-in-out;
+  }
+  .burger.open {
+    border-bottom: 3px solid transparent;
+    transition: border-bottom 0.8s ease-in-out;
+    -webkit-transition: border-bottom 0.8s ease-in-out;
+  }
+  .burger.open:before {
+    transform: rotate(-405deg) translateY(1px) translateX(-1px);
+    -webkit-transform: rotate(-405deg) translateY(1px) translateX(-1px);
+    transition: transform 0.5s ease-in-out;
+    -webkit-transition: -webkit-transform 0.5s ease-in-out;
+  }
+  .burger.open:after {
+    transform: rotate(405deg) translateY(-4px) translateX(-3px);
+    -webkit-transform: rotate(405deg) translateY(-4px) translateX(-3px);
+    transition: transform 0.5s ease-in-out;
+    -webkit-transition: -webkit-transform 0.5s ease-in-out;
+  }
+  .burger.add {
+    border-bottom: 3px solid transparent;
+    transition: border-bottom 0.8s ease-in-out;
+    -webkit-transition: border-bottom 0.8s ease-in-out;
+  }
+  .burger.add:before {
+    transform: rotate(-90deg) translateY(0px) translateX(-1px);
+    -webkit-transform: rotate(-90deg) translateY(0px) translateX(-1px);
+    transition: transform 0.5s ease-in-out;
+    -webkit-transition: -webkit-transform 0.5s ease-in-out;
+  }
+  .burger.add:after {
+    transform: rotate(90deg) translateY(-5px) translateX(-0px);
+    -webkit-transform: rotate(0deg) translateY(-5px) translateX(0px);
+    transition: transform 0.5s ease-in-out;
+    -webkit-transition: -webkit-transform 0.5s ease-in-out;
+  }
+  .burger-w:before {
+    border-color: #FFF;
+  }
+  .burger-w:after {
+    border-color: #FFF;
+  }
+  .btn-po-bo-add {
+    position: absolute;
+    bottom: 78px;
+    right: 50px;
+  }
+  .btn-po-bo-add:before {
+    border-color: #747474;
+  }
+  .btn-po-bo-add:after {
+    border-color: #747474;
+  }
+  .btn-po-bo-list {
+    position: absolute;
+    border-color: #747474;
+    bottom: 50px;
+    right: 50px;
+  }
+  .btn-po-bo-list:before {
+    border-color: #747474;
+  }
+  .btn-po-bo-list:after {
+    border-color: #747474;
+  }
+
+</style>
